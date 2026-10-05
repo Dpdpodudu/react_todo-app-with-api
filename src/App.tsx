@@ -15,6 +15,7 @@ import { Header } from './components/Header';
 import { TodoList } from './components/TodoList';
 import { Footer } from './components/Footer';
 import { ErrorNotification } from './components/ErrorNotification';
+import { useVisibleTodos } from './hooks/useVisibleTodos';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -30,6 +31,9 @@ export const App: React.FC = () => {
   const [editTitle, setEditTitle] = useState('');
 
   const newTodoFieldRef = useRef<HTMLInputElement>(null);
+
+  // Вызываем хук ДО любых if-условий (до !USER_ID)
+  const visibleTodos = useVisibleTodos(todos, filter);
 
   useEffect(() => {
     setErrorMessage('');
@@ -95,7 +99,6 @@ export const App: React.FC = () => {
     return deleteTodo(todoId)
       .then(() => {
         setTodos(prev => prev.filter(t => t.id !== todoId));
-        // Возвращаем фокус ТОЛЬКО при успешном удалении
         setTimeout(() => {
           if (newTodoFieldRef.current) {
             newTodoFieldRef.current.focus();
@@ -168,18 +171,6 @@ export const App: React.FC = () => {
       handleUpdate(todo.id, { completed: targetStatus });
     });
   };
-
-  const visibleTodos = todos.filter(todo => {
-    if (filter === FilterStatus.Active) {
-      return !todo.completed;
-    }
-
-    if (filter === FilterStatus.Completed) {
-      return todo.completed;
-    }
-
-    return true;
-  });
 
   const activeTodosCount = todos.filter(t => !t.completed).length;
   const hasCompletedTodos = todos.some(t => t.completed);
